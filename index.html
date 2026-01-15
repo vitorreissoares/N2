@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="pt-br">  <head>
+    <meta charset="UTF-8">  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icone.png" type="image/png">
+    <title>Dashboard do Lula</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Adapter para usar escala de tempo com Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@2.1.0/src/wordcloud2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
+    <style>
+        /* --- Variáveis de Design (Estilo profissional) --- */
+        :root {
+            --sidebar-width-desktop: 260px;
+            --header-height-mobile: 60px;
+            
+            --color-primary: #2563eb; /* Azul profissional */
+            --color-primary-light: #dbeafe;
+            --color-text-primary: #111827; /* Grafite escuro */
+            --color-text-secondary: #4b5563;
+            --color-text-on-primary: #ffffff;
+            
+            --bg-body: #f3f4f6; /* Fundo do app (cinza claro) */
+            --bg-sidebar: #ffffff;
+            --bg-content: #ffffff;
+            --border-color: #e5e7eb; /* Cor da borda sutil */
+            
+            --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --card-radius: 0.75rem; /* 12px */
+        }
+
+        /* --- Reset e Estilos Globais --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--color-text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 0.5rem; /* 8px */
+        }
+        
+        p {
+            line-height: 1.6;
+            color: var(--color-text-secondary);
+        }
+        
+        h2, h3, h4 {
+            font-weight: 600;
+        }
+
+        /* --- Layout Principal (Sidebar + Conteúdo) --- */
+        .app-layout {
+            display: flex;
+            flex-direction: column; /* Mobile-first: empilhado */
+        }
+
+        /* --- Sidebar (Navegação) --- */
+        .sidebar {
+            width: 100%;
+            background-color: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem;
+            
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .sidebar-header { display: none; }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: row; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; 
+        }
+        
+        .sidebar-nav::-webkit-scrollbar { display: none; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem; 
+            font-size: 0.9rem; 
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            border-radius: 0.5rem; 
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+            white-space: nowrap; 
+            flex-shrink: 0; 
+        }
+        
+        .nav-item:hover {
+            background-color: var(--bg-body);
+            color: var(--color-text-primary);
+        }
+
+        .nav-item.active {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            width: 1.25rem; 
+            height: 1.25rem; 
+            margin-right: 0.75rem; 
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 1023px) {
+            .nav-item-icon { display: none; }
+            .nav-item {
+                justify-content: center;
+                flex-grow: 1;
+            }
+        }
+
+        /* --- Área de Conteúdo Principal --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 1.5rem; 
+            width: 100%;
+        }
+        
+               
+        .tab-content { display: none; }
+
+        /* --- Layout de Grid de Cards --- */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem; 
+        }
+        
+        .card {
+            background-color: var(--bg-content);
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            overflow: hidden; 
+        }
+        
+        .card.full-width { grid-column: 1 / -1; }
+
+        .card-header {
+            padding: 1rem 1.5rem; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-header h3 { font-size: 1.125rem; }
+
+        .card-body { padding: 1.5rem; }
+        
+        .card-body h4 {
+            font-size: 1rem; 
+            font-weight: 600;
+            margin-top: 1.25rem; 
+            margin-bottom: 0.5rem; 
+        }
+        
+        .card-body p { margin-bottom: 1rem; }
+
+        
+.chart-container, .chart-container-radar {
+    position: relative;
+    height: 340px;
+    width: 100%;
+    padding: 0.5rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* --- FIM: Correção do Tamanho do Gráfico --- */
+        
+        
+        /* --- Estilo do Accordion (details) --- */
+        .accordion-item {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem; 
+            margin-bottom: 1rem;
+            background-color: #fafafa;
+        }
+        
+        .accordion-item[open] {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem; 
+            font-size: 1rem; 
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none; 
+        }
+        
+        .accordion-header::-webkit-details-marker { display: none; }
+        
+        .accordion-header::after {
+            content: '+';
+            font-size: 1.5rem; 
+            font-weight: 400;
+            color: var(--color-text-secondary);
+            transform: rotate(0);
+            transition: transform 0.2s ease;
+        }
+        
+        .accordion-item[open] > .accordion-header::after {
+            content: '−';
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            padding: 1.5rem; 
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-content);
+        }
+        
+        .accordion-plataforma > .accordion-header {
+            background-color: #f9f9f9;
+            font-size: 1.1rem;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            margin-top: 2rem;
+            padding: 2rem 1.5rem; 
+            background-color: var(--bg-content);
+            border-top: 1px solid var(--border-color);
+            color: var(--color-text-secondary);
+            font-size: 0.875rem; 
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .footer-info p { margin: 0.25rem 0; }
+        .footer-info .cargo { font-style: italic; }
+
+        .footer-links a {
+            color: var(--color-text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0 0.5rem;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--color-primary); }
+
+        
+        /* --- INÍCIO: NOVOS ESTILOS DO LIGHTBOX (Modal de Imagem) --- */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            
+            /* O "embaçado" que você pediu */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px); /* Suporte para Safari */
+            
+            z-index: 10000;
+            display: flex; /* Centraliza a imagem */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            
+            /* Animação suave */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .lightbox-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-image {
+            max-width: 90%;
+            max-height: 90vh; /* Limita a altura a 90% da tela */
+            object-fit: contain; /* Garante que a imagem caiba sem distorcer */
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 3rem; /* 48px */
+            font-weight: 300;
+            color: #ffffff;
+            cursor: pointer;
+            line-height: 1;
+            transition: opacity 0.2s;
+        }
+        
+        .lightbox-close:hover {
+            opacity: 0.8;
+        }
+        
+        /* Adiciona o cursor de "zoom" às imagens clicáveis */
+        .card-body img,
+        .tab-content > img { /* Pega imagens no card e também as de fora */
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
+
+            /* Centralização */
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+        }
+        
+        /* Não aplicar zoom em GIFs (ex: radar) */
+        .card-body img[src$=".gif"],
+        .tab-content > img[src$=".gif"] {
+            cursor: default;
+        }
+        /* --- FIM: NOVOS ESTILOS DO LIGHTBOX --- */
+
+
+     /* ... (todo o seu CSS anterior) ... */
+
+    /* --- INÍCIO: NOVOS ESTILOS DO CARD DE PERFIL --- */
+    
+    .profile-banner {
+        /* Define uma altura fixa para o banner */
+        height: 220px; 
+        overflow: hidden;
+        background-color: #e5e7eb; /* Cor de fundo caso a imagem falhe */
+    }
+    
+    .profile-banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+        /* Ajusta o radius para bater com o card */
+        border-radius: var(--card-radius) var(--card-radius) 0 0;
+    }
+
+    .profile-card-body {
+        /* Posição relativa para "ancorar" a foto de perfil */
+        position: relative;
+        /* Damos um padding maior no topo para o nome não ficar colado na foto */
+        padding-top: 5rem; /* 80px */
+    }
+
+    .profile-pic {
+        width: 120px;  /* Tamanho da foto (não muito grande) */
+        height: 120px;
+        border-radius: 50%; /* Deixa circular */
+        border: 5px solid var(--bg-content); /* Borda branca (cor do card) */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra suave */
+        
+        /* O truque de posicionamento: */
+        position: absolute;
+        top: -60px;  /* Metade da altura (120px / 2) PARA CIMA */
+        left: 1.5rem; /* Alinha com o padding do card-body */
+        
+        background-color: #fff; /* Garante que não seja transparente */
+        object-fit: cover; /* Garante que a foto preencha o círculo */
+    }
+    
+    .profile-name {
+        font-size: 1.75rem; /* 28px - Nome com mais destaque */
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin-bottom: 1rem; /* Espaço antes do texto de introdução */
+        line-height: 1.2;
+    }
+
+    /* Ajuste para o lightbox não aplicar zoom na foto de perfil */
+    .profile-pic {
+        cursor: default;
+    }
+
+    /* --- FIM: NOVOS ESTILOS DO CARD DE PERFIL --- */
+
+    
+    /* --- INÍCIO: Estilos do Novo Botão de Compartilhar --- */
+    .share-button {
+        display: flex; /* Padrão (visível no mobile) */
+        align-items: center;
+        justify-content: center;
+        
+        width: 44px;  /* Tamanho bom para toque */
+        height: 44px;
+        border-radius: 50%; /* Circular */
+        
+        background-color: var(--bg-content);
+        border: 1px solid var(--border-color);
+        color: var(--color-text-secondary); /* Cor sutil */
+        
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .share-button:hover {
+        background-color: var(--bg-body);
+        color: var(--color-primary); /* Destaca ao passar o mouse */
+    }
+
+    share-button i {
+            font-size: 1.25rem; /* 20px - Tamanho do ícone */
+            line-height: 1; /* Alinhamento */
+        }
+    /* --- FIM: Estilos do Botão de Compartilhar --- */
+    
+
+    /* --- Layout Desktop (min-width: 1024px) --- */
+    @media (min-width: 1024px) {
+        .app-layout {
+            flex-direction: row; /* Lado a lado */
+        }
+
+        .sidebar {
+            width: var(--sidebar-width-desktop);
+            height: 100vh; 
+            position: fixed; 
+            top: 0;
+            left: 0;
+            border-bottom: none;
+            border-right: 1px solid var(--border-color);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            display: block;
+            font-size: 1.5rem; 
+            font-weight: 700;
+            padding: 1rem 0.5rem 1.5rem 0.5rem;
+            color: var(--color-text-primary);
+        }
+
+        .sidebar-nav {
+            flex-direction: column; 
+            overflow-x: hidden;
+            overflow-y: auto;
+            flex-grow: 1; 
+        }
+
+        .nav-item {
+            font-size: 0.95rem; 
+            padding: 0.8rem 1rem; 
+            margin-bottom: 0.25rem;
+        }
+        
+        .nav-item-icon { display: block; }
+
+        /* ATUALIZAÇÃO AQUI (Flexbox) */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Alinha os itens ao topo */
+        }
+        .main-header h2 { font-size: 1.8rem; }
+        .main-header p {
+            font-size: 1rem; 
+            color: var(--color-text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .main-content {
+    margin-left: 260px; /* Garante que o conteúdo não fique sob o menu */
+    padding: 40px;
+    width: calc(100% - 260px); /* Ajusta a largura para não criar barra de rolagem horizontal */
+    transition: all 0.3s;
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+}
+        
+        .footer {
+            flex-direction: row;
+            justify-content: space-between;
+            text-align: left;
+        }
+        
+        /* NOVO: Esconde o botão de compartilhar no desktop */
+        .share-button {
+            display: none;
+        }
+    }
+
+/* --- Destaque visual para o gráfico principal da aba de conteúdo --- */
+.destaque-grafico {
+    border: 1px solid var(--color-primary-light);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);
+    transform: scale(1.01);
+    transition: all 0.3s ease;
+}
+
+.destaque-grafico:hover {
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.12);
+    transform: scale(1.015);
+}
+
+.destaque-grafico .card-header h3 {
+    color: var(--color-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.destaque-grafico .chart-container,
+.destaque-grafico .chart-container-radar {
+    height: 400px; /* Maior destaque visual */
+}
+
+/* --- FIM: Correção do Tamanho do Gráfico RADAR --- */
+
+#graficoDispersaoComentarios {
+    margin-top: 10px;
+}
+.chart-container {
+    height: 360px;
+}
+
+/* === Grid para imagens de categorias === */
+.img-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Cada item individual */
+.img-item {
+  flex: 1;
+  text-align: center;
+}
+
+/* Imagens com a mesma largura e estilo dos gráficos */
+.img-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  transition: transform 0.3s ease;
+}
+
+.img-item img:hover {
+  transform: scale(1.02);
+}
+
+/* Layout lado a lado em telas grandes */
+@media (min-width: 992px) {
+  .img-grid {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .img-item {
+    max-width: 32%;
+  }
+}
+
+/* --- INÍCIO: Estilo do Indicador do Radar --- */
+.indicator {
+    position: absolute;
+    top: 1rem; /* 16px */
+    right: 1.25rem; /* 20px */
+    z-index: 10; /* Garante que fique sobre o gráfico */
+    
+    font-size: 1rem; /* 16px */
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    
+    background: rgba(255, 255, 255, 0.7); /* Fundo branco semitransparente */
+    backdrop-filter: blur(4px); /* Efeito de vidro fosco */
+    -webkit-backdrop-filter: blur(4px);
+    
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem; /* 8px */
+    padding: 0.25rem 0.65rem; /* Espaçamento interno */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+/* --- FIM: Estilo do Indicador do Radar --- */
+
+.categoria-grupo { margin-bottom: 3rem; }
+.categoria-titulo-slug {
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary-light);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+.tabela-dados th {
+    text-align: left;
+    padding: 12px;
+    background: #f8fafc;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+.tabela-dados td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--color-text-primary);
+}
+.tabela-dados tr:hover { background: #f1f5f9; }
+.col-obs { font-style: italic; color: var(--color-text-secondary); font-size: 0.8rem; }
+.badge-comentarios {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Link minimalista para o post */
+.btn-ver-post {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+.btn-ver-post:hover {
+    text-decoration: underline;
+}
+
+/* Ajuste na largura das colunas para caber tudo */
+.tabela-dados th, .tabela-dados td {
+    padding: 10px 8px;
+}
+.col-obs-texto {
+    max-width: 200px; /* Limita o tamanho para não quebrar o layout */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+.col-obs-texto:hover {
+    white-space: normal; /* Mostra o texto todo ao passar o mouse */
+    cursor: help;
+}
+
+/* --- ESTILO DAS TABELAS E BOTÃO EXPANSÍVEL --- */
+
+/* 1. Container da Categoria: Removemos a altura fixa e o overflow */
+.categoria-grupo {
+    margin-bottom: 30px;
+}
+
+.categoria-container {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden; /* Garante que o botão e a tabela fiquem alinhados */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* 2. Regra principal: Esconde as linhas que excedem o limite inicial */
+.tabela-dados tr.linha-oculta {
+    display: none;
+}
+
+/* 3. Botão "Ver Mais" Minimalista */
+.btn-expandir {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: #f8fafc; /* Cor de fundo sutil */
+    border: none;
+    border-top: 1px solid var(--border-color);
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-expandir:hover {
+    background: #f1f5f9;
+    color: var(--color-primary-dark);
+}
+
+/* 4. Estilo do Link "Ver Post" */
+.btn-ver-post {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(37, 99, 235, 0.05); /* Azul bem clarinho */
+}
+
+.btn-ver-post:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.col-obs {
+    max-width: 250px; /* Ajuste o tamanho conforme necessário */
+    font-size: 0.85em;
+    color: #666;
+    line-height: 1.4;
+    word-wrap: break-word; /* Garante que o texto quebre linha se for muito longo */
+}
+
+/* Opcional: ajustar a tabela para ocupar 100% e distribuir melhor as colunas */
+.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Estilo do botão que abre a gaveta */
+.btn-gaveta {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.btn-gaveta:hover {
+    background: #e5e7eb;
+}
+
+/* Estilo da linha da gaveta */
+.linha-gaveta {
+    background-color: #fafafa; /* Cinza bem claro para diferenciar */
+}
+
+.gaveta-conteudo {
+    padding: 15px;
+    font-size: 13px;
+    color: #4b5563;
+    border-left: 4px solid #3b82f6; /* Detalhe azul lateral */
+    margin: 5px 0;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Animação suave para abrir */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === Scroll horizontal apenas no mobile === */
+@media (max-width: 768px) {
+  .tabela-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .tabela-scroll table {
+    min-width: 700px; /* força rolagem */
+  }
+
+  /* Indicador visual sutil */
+  .tabela-scroll::after {
+    content: '';
+    display: block;
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-top: 6px;
+  }
+}
+
+/* === Comentário sobre imagem === */
+.img-comentada {
+  position: relative;
+  cursor: pointer;
+}
+
+.img-comentario {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+
+  background: rgba(17, 24, 39, 0.85);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+
+  padding: 12px 14px;
+  border-radius: 0 0 12px 12px;
+
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.25s ease;
+}
+
+/* Hover no desktop */
+.img-comentada:hover .img-comentario {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile: mostrar ao tocar */
+@media (max-width: 768px) {
+  .img-comentada:active .img-comentario {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toggle-container {
+  align-self: center;   /* 👈 impede esticar */
+  display: inline-flex;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 6px;
+  margin-bottom: 16px;
+}
+
+.toggle-container button {
+  border: none;
+  background: transparent;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.toggle-container button.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
+}
+
+/* ===== PISM – TERMÔMETRO ===== */
+
+.pism-bar {
+  position: relative;
+  height: 14px;
+  width: 100%;
+  max-width: 600px;
+  margin: 30px auto 20px;
+  background: linear-gradient(
+    to right,
+    #e5e7eb,
+    #c7d2fe,
+    #93c5fd,
+    #60a5fa,
+    #2563eb
+  );
+  border-radius: 999px;
+}
+
+/* Marcadores */
+.pism-bar .marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #111827;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+}
+
+/* Daniel */
+.marker.daniel {
+  background: #2563eb;
+}
+
+/* Luisa */
+.marker.luisa {
+  background: #dc2626;
+}
+
+/* ===== PISM VERTICAL ===== */
+
+.pism-vertical-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 30px auto;
+  height: 260px;
+}
+
+/* Escala 0–1 */
+.pism-scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* Barra neutra */
+.pism-bar-vertical {
+  position: relative;
+  width: 10px;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    #e5e7eb,
+    #d1d5db,
+    #9ca3af
+  );
+  border-radius: 999px;
+}
+
+/* Marcadores */
+.marker-vertical {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.08);
+}
+
+/* Daniel */
+.marker-vertical.daniel {
+  background: #2563eb;
+}
+
+/* Luisa */
+.marker-vertical.luisa {
+  background: #dc2626;
+}
+
+/* Valor numérico */
+.marker-vertical::after {
+  content: attr(data-value);
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.card-compare {
+  background: #f9fafb;
+  border: 1px dashed #e5e7eb;
+}
+
+
+
+    </style>
+</head>
+
+
+
+<body>
+
+    <div class="app-layout">
+        
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                Dashboard Lula
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-target="Categoria0">
+                    <svg class="nav-item-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                    Início
+                </a>
+                <a class="nav-item" data-target="Categoria1">
+                    <svg class="nav-item-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25C3.504 21 3 20.496 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25c-.621 0-1.125-.504-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25c-.621 0-1.125-.504-1.125-1.125V4.125Z" /></svg>
+                    Análise de Conteúdo
+                </a>
+                <a class="nav-item" data-target="Categoria2">
+                    <svg class="nav-item-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9 9.75h.008v.008H9v-.008Zm6 0h.008v.008H15v-.008Z" /></svg>
+                    Análise de Sentimentos
+                </a>
+                <a class="nav-item" data-target="Categoria3">
+                    <svg class="nav-item-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 11.25-7.5 7.5-7.5-7.5m15 4.5-7.5 7.5-7.5-7.5" /></svg>
+                    Radar da Liderança
+                </a>
+                <a class="nav-item" data-target="Categoria4">
+                    <svg class="nav-item-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                    Avaliação Técnica
+                </a>
+            </nav>
+        </aside>
+
+
+
+        <main class="main-content">
+            
+            <header class="main-header">
+                <div class="main-header-text">
+                    <h2>2025</h2>
+                    <p>Posicionamento e percepção da audiência</p>
+                </div>
+                
+                <button class="share-button" id="mobileShareBtn" aria-label="Compartilhar">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+            </header>
+
+
+
+            <section id="Categoria0" class="tab-content" style="display: block;">
+                <div class="card-grid">
+                    
+                    <div class="card full-width">
+                        
+                        <div class="profile-banner">
+                            <img src="capa2.jpg" alt="Imagem da Categoria 0" loading="lazy">
+                        </div>
+                        
+                        <div class="card-body profile-card-body">
+                            
+                            <img src="perfil2.jpg" alt="Foto de Perfil do Candidato" class="profile-pic">
+                            
+                            <h3 class="profile-name">Luiz Inácio Lula da Silva</h3>
+                            
+                            <p>Presidente do Brasil</p>
+                            <p>(...)</p> 
+                        </div>
+
+                    
+                    </div>
+
+                    <div class="card full-width">
+                        <div class="card-header"> <h3>As Marcas Humanas na Política</h3> </div>
+                        <div class="card-body">
+                            <p>As marcas humanas na política são (...)</p>
+                            <p>Os 03 conceitos fundamentais para o sucesso do líder político são (...)</p>
+                        </div>
+                    </div>
+
+
+                </div>
+            </section>
+
+            
+            <section id="Categoria1" class="tab-content">
+                <div class="card full-width">
+                    <div class="card-header"><h3>Análise de Conteúdo</h3></div>
+                    <div class="card-body">
+                        <p>A Análise de conteúdo é (...) e nesta seção focamos nas seguintes plataformas:</p>
+                    </div>
+                </div>              
+ 
+
+
+<details class="accordion-item accordion-plataforma open">
+    <summary class="accordion-header">Instagram</summary>
+    <div class="accordion-content">
+        <div class="card-grid">
+            <div class="card full-width destaque-grafico">
+                
+                <div class="card-header"><h3>Distribuição das categorias</h3></div>
+                <div class="card-body">
+                    
+                    <div class="chart-container">
+                        <canvas id="graficoCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            
+                            
+                            <!-- CORREÇÃO: card contendo o gráfico de dispersão -->
+                            <div class="card full-width destaque-grafico">
+                                <div class="card-header"><h3>Comentários</h3></div>
+                                <div class="card-body">
+                                    
+                                    <div class="chart-container">
+                                        <canvas id="graficoDispersaoComentarios"></canvas>
+                                    </div>
+
+                                    
+
+                                    
+
+                                        <div class="card full-width">
+    <div class="card-header"><h3>Postagens mais comentadas por Categoria</h3></div>
+    <div class="card-body" id="container-comentarios-csv">
+        <p>Carregando dados da planilha...</p>
+    </div>
+
+    
+</div>
+</div>
+</div>
+<div class="card full-width destaque-grafico">
+    <div class="card-header"><h3>Postagens mais curtidas</h3></div>
+    <div class="card-body">
+        
+        <div class="chart-container">
+            <canvas id="graficoDispersaoCurtidas"></canvas>
+        </div>
+        
+
+        <div class="card full-width">
+    <div class="card-header"><h3>Postagens mais curtidas por Categoria</h3></div>
+    <div class="card-body" id="container-curtidas-csv">
+        <p>Carregando dados da planilha...</p>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="card full-width destaque-grafico">
+<div class="card-header"><h3>Análise de Discurso e Audiência</h3></div>
+<div class="card">
+  
+
+  <div class="toggle-container">
+    <button id="btnDiscurso" class="active">Discurso</button>
+    <button id="btnAudiencia">Audiência</button>
+  </div>
+
+  <canvas id="wordcloud" width="900" height="520"></canvas>
+  
+</div>
+
+
+                            </div>
+                        </div>
+                    </div> 
+                </details>
+            </section>
+                
+            <section id="Categoria2" class="tab-content">
+                <div class="card full-width">
+                    <div class="card-header"><h3>Análise de Sentimentos</h3></div>
+                    <div class="card-body"><p>A Análise de sentimentos é (...)</p></div>
+                </div>
+
+                <details class="accordion-item accordion-plataforma open">
+                    <summary class="accordion-header">Instagram</summary>
+                    <div class="accordion-content">
+                        <div class="card destaque-grafico">
+    <div class="card-header"><h3>Comportamento da Audiência (Série Histórica)</h3></div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="graficoSentimentosTempo"></canvas>
+        </div>
+        <p>Explicação breve(...)</p>
+    </div>
+</div>
+
+<div class="card full-width">
+  <div class="card-header">
+    <h3>Destaques por Sentimento</h3>
+  </div>
+  <div class="card-body" id="container-sentimentos-csv">
+    <p>Carregando dados da planilha...</p>
+  </div>
+</div>
+</details>
+</section>
+            
+            <section id="Categoria3" class="tab-content">
+                <div class="card full-width">
+                    <div class="card-header"><h3>O Radar da Liderança Política</h3></div>
+                    <div class="card-body"><p>O que é o radar (...)</p></div>
+                </div>
+                
+                <details class="accordion-item accordion-plataforma open">
+                    <summary class="accordion-header">Instagram</summary>
+                    <div class="accordion-content">
+
+  <!-- GRID PRINCIPAL: RADAR + PISM -->
+  <div class="card-grid">
+
+    <!-- CARD RADAR -->
+    <div class="card destaque-grafico">
+      <div class="card-header">
+        <h3>O Radar da Marca Humana na Política</h3>
+      </div>
+
+      <div class="card-body">
+        <div class="chart-container-radar">
+          <canvas id="graficoRadar"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD PISM -->
+    <div class="card destaque-grafico">
+      <div class="card-header">
+        <h3>PISM – Comparativo</h3>
+      </div>
+
+      <div class="card-body">
+        <div class="pism-vertical-wrapper">
+          <div class="pism-scale">
+            <span class="scale-top">1,0</span>
+            <span class="scale-bottom">0,0</span>
+          </div>
+
+          <div class="pism-bar-vertical">
+            <div id="indicatorDaniel" class="marker-vertical daniel"></div>
+            <div id="indicatorLuisa"
+                 class="marker-vertical luisa"
+                 style="display:none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- FIM GRID -->
+
+  <!-- CARD DISCRETO: COMPARAÇÃO -->
+  <div class="card full-width card-compare">
+    <div class="card-body">
+      <label class="checkbox-compare">
+        <input type="checkbox" id="toggleLuisa">
+        Comparar com <strong>Luisa González</strong>
+      </label>
+    </div>
+  </div>
+
+</div>
+
+            </details>
+        </section>
+        
+        <section id="Categoria4" class="tab-content">
+                <div class="card full-width">
+                    <div class="card-header"><h3>Avaliação Técnica</h3></div>
+                    <div class="card-body"><p>O que é a avaliação (...)</p></div>
+                </div>
+
+                <details class="accordion-item accordion-plataforma open">
+                    <summary class="accordion-header">Instagram</summary>
+                    <div class="accordion-content"> 
+                        <div class="card-grid">
+                            <div class="card">
+                                <div class="card-header"><h3>Análise Técnica</h3></div>
+                                <div class="card-body">
+                                    <p>Avaliação (...)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                </details>
+            </section>
+            <footer class="footer">
+                <div class="footer-info">
+                    <p>Desenvolvido por: <strong>Vitor Reis Soares</strong></p>
+                    <p class="cargo">Especialista em Marketing Político</p>
+                </div>
+                <div class="footer-links">
+                    <a href="[#]" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                    <a href="https://scholar.google.com/citations?user=0BSfm-wAAAAJ&hl=pt-BR&oi=ao" target="_blank" rel="noopener noreferrer">Google Scholar</a>
+                    <a href="[#]" target="_blank" rel="noopener noreferrer">Github</a>
+                </div>
+            </footer>           
+
+            
+        </main>
+
+                    
+    </div>
+    
+    <div id="imageLightbox" class="lightbox-overlay">
+        <span class="lightbox-close">&times;</span>
+        <img class="lightbox-image" id="lightboxImageSrc" src="" alt="Imagem Ampliada">
+    </div>
+    
+    <script>
+
+        let dadosRadarDaniel = null;
+let dadosRadarLuisa = null;
+let mostrarLuisa = false;
+
+        function calcularDadosRadarMarcaHumana(dadosCSV) {
+
+    const mapaCategorias = {
+        Autenticidade: { pos: [], neg: [] },
+        Autoridade: { pos: [], neg: [] }, // vira Competência
+        Humanização: { pos: [], neg: [] }
+    };
+
+    
+    dadosCSV.forEach(item => {
+        const categoria = item.CATEGORIA?.trim();
+        if (!mapaCategorias[categoria]) return;
+
+        const pos = normalizarPercentual(item.POSITIVO);
+        const neg = normalizarPercentual(item.NEGATIVO);
+
+        mapaCategorias[categoria].pos.push(pos);
+        mapaCategorias[categoria].neg.push(neg);
+
+        
+    });
+
+    const media = arr =>
+        arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : 0;
+
+    const mediaAutenticidade = media(mapaCategorias.Autenticidade.pos);
+const mediaAutoridade   = media(mapaCategorias.Autoridade.pos);
+const mediaHumanizacao  = media(mapaCategorias.Humanização.pos);
+
+const pismCorreto = +(
+    (mediaAutenticidade + mediaAutoridade + mediaHumanizacao) / 3
+).toFixed(1);
+
+return {
+    positivos: [
+        mediaAutenticidade,
+        mediaAutoridade,
+        mediaHumanizacao
+    ],
+    negativos: [
+        media(mapaCategorias.Autenticidade.neg),
+        media(mapaCategorias.Autoridade.neg),
+        media(mapaCategorias.Humanização.neg)
+    ],
+    pism: pismCorreto
+
+        
+};
+
+const dadosRadar = calcularDadosRadarMarcaHumana(dadosCSV);
+
+const indicador = document.getElementById('indicatorValue');
+
+}
+
+    function prepararSerieHistoricaSentimentos(dadosCSV) {
+
+    const sentimentos = [
+        'CONFIANCA',
+        'FELICIDADE',
+        'EXPECTATIVA',
+        'SURPRESA',
+        'MEDO',
+        'TRISTEZA',
+        'RAIVA',
+        'REPULSA'
+    ];
+
+    const mapaPorData = {};
+
+    dadosCSV.forEach(item => {
+        const data = item.DATA;
+        if (!data) return;
+
+        if (!mapaPorData[data]) {
+            mapaPorData[data] = {};
+            sentimentos.forEach(s => {
+                mapaPorData[data][s] = { soma: 0, count: 0 };
+            });
+        }
+
+        sentimentos.forEach(s => {
+            const valor = normalizarPercentual(item[s]);
+            mapaPorData[data][s].soma += valor;
+            mapaPorData[data][s].count += 1;
+        });
+    });
+
+    // Ordena as datas
+    const labels = Object.keys(mapaPorData).sort((a, b) => new Date(a) - new Date(b));
+
+    const series = {};
+    sentimentos.forEach(s => {
+        series[s] = labels.map(data => {
+            const obj = mapaPorData[data][s];
+            return obj.count ? +(obj.soma / obj.count).toFixed(1) : 0;
+        });
+    });
+
+    return { labels, series };
+}
+
+
+    // --- Instância do Gráfico de Barras (Existente) ---
+    let graficoCategoriasChart = null;
+    
+    // --- NOVO: Instância do Gráfico de Radar ---
+    let graficoRadarChart = null;
+
+    // --- NOVOS GRÁFICOS DE DISPERSÃO ---
+    let graficoDispersaoComentariosChart = null;
+    let graficoDispersaoCurtidasChart = null;
+
+    // --- NOVO: GRÁFICO DE SÉRIE HISTÓRICA ---
+    let graficoSentimentosTempoChart = null;
+
+    function criarGraficoCategorias(percentuais) {
+    const ctx = document.getElementById('graficoCategorias');
+    if (!ctx) return;
+
+    if (graficoCategoriasChart) graficoCategoriasChart.destroy();
+
+    graficoCategoriasChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Autenticidade', 'Competência', 'Humanização'],
+            datasets: [{
+                label: '% de Distribuição',
+                data: percentuais,
+                backgroundColor: [
+                    'rgba(37, 99, 235, 0.8)',
+                    'rgba(75, 85, 99, 0.8)',
+                    'rgba(147, 197, 253, 0.8)'
+                ],
+                barThickness: 15,
+                categoryPercentage: 0.1,
+                barPercentage: 0.3,
+                borderRadius: 10,
+                borderSkipped: false,
+                hoverBackgroundColor: [
+                    'rgba(37, 99, 235, 1)',
+                    'rgba(75, 85, 99, 1)',
+                    'rgba(147, 197, 253, 1)'
+                ],
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    cornerRadius: 6,
+                    callbacks: {
+                        label: ctx => ` ${ctx.raw}%`
+                    }
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        drawBorder: false,
+                        color: 'rgba(209, 213, 219, 0.3)'
+                    },
+                    ticks: {
+                        
+                        color: '#6b7280',
+                        callback: v => v + '%'
+                        
+                    }
+                    
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        color: '#111827',
+                        font: { weight: '600' }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function criarGraficoRadar(dadosCSV) {
+    const canvas = document.getElementById('graficoRadar');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    if (window.graficoRadarChart instanceof Chart) {
+        window.graficoRadarChart.destroy();
+    }
+
+    dadosRadarDaniel = calcularDadosRadarMarcaHumana(dadosCSV);
+
+    const gradientBlue = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientBlue.addColorStop(0, 'rgba(54, 162, 235, 0.45)');
+    gradientBlue.addColorStop(1, 'rgba(54, 162, 235, 0.1)');
+
+    const gradientRed = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientRed.addColorStop(0, 'rgba(255, 99, 132, 0.45)');
+    gradientRed.addColorStop(1, 'rgba(255, 99, 132, 0.1)');
+
+    const datasets = [
+  {
+    label: 'Daniel – Positivos',
+    data: dadosRadarDaniel.positivos,
+    fill: true,
+    backgroundColor: gradientBlue,
+    borderColor: 'rgba(54, 162, 235, 0.9)',
+    borderWidth: 3,
+    pointRadius: 0,
+    tension: 1
+  }
+];
+
+// 🔴 Luisa só entra se estiver marcada
+if (mostrarLuisa && dadosRadarLuisa) {
+  datasets.push({
+    label: 'Luisa – Positivos',
+    data: dadosRadarLuisa.positivos,
+    fill: true,
+    backgroundColor: 'rgba(220,38,38,0.15)',
+    borderColor: 'rgba(220,38,38,0.9)',
+    borderWidth: 3,
+    pointRadius: 0,
+    tension: 1
+  });
+}
+
+
+    window.graficoRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['A', 'C', 'H'],
+            datasets: datasets
+
+        },
+        options: {
+            layout: { padding: 40 },
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    grid: {
+                        circular: true,
+                        color: 'rgba(0, 0, 0, 0.15)'
+                    },
+                    angleLines: {
+                        color: 'rgba(0, 0, 0, 0.15)'
+                    },
+                    ticks: {
+                        backdropColor: 'transparent',
+                        color: 'transparent',
+                        font: { size: 0 },
+                        callback: () => ''
+                    },
+                    pointLabels: {
+                        color: '#111',
+                        font: { size: 20, weight: '600' }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.85)',
+                    callbacks: {
+                        title: ctx => ({
+                            A: 'Autenticidade',
+                            C: 'Competência',
+                            H: 'Humanização'
+                        })[ctx[0].label],
+                        label: ctx =>
+                            `${ctx.dataset.label}: ${ctx.formattedValue}%`
+                    }
+                }
+            },
+            animation: { duration: 1800, easing: 'easeOutQuint' }
+        }
+    });
+
+    // 🔥 ANIMAÇÃO DO PISM
+    const indicador = document.getElementById('indicatorValue');
+    if (indicador) {
+        let atual = 0;
+        const alvo = dadosRadarDaniel.pism / 100;
+
+        function animar() {
+            atual += 0.01;
+            if (atual >= alvo) atual = alvo;
+            indicador.innerText = atual.toFixed(5).replace('.', ',');
+            if (atual < alvo) requestAnimationFrame(animar);
+        }
+
+        animar();
+
+        
+    }
+}
+
+// --- NOVO: Função para criar o gráfico de dispersão de comentários ---
+
+
+function criarGraficoDispersaoComentarios(dadosCSV) {
+    const ctx = document.getElementById('graficoDispersaoComentarios');
+    if (!ctx) return;
+
+    if (graficoDispersaoComentariosChart) graficoDispersaoComentariosChart.destroy();
+
+    const dados = prepararDadosDispersaoCSV(dadosCSV, 'N° COMENTÁRIOS');
+
+    graficoDispersaoComentariosChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Autenticidade',
+                    data: dados.Autenticidade,
+                    backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                    borderColor: '#2563eb',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Competência',
+                    data: dados.Competência,
+                    backgroundColor: 'rgba(75, 85, 99, 0.8)',
+                    borderColor: '#4b5563',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Humanização',
+                    data: dados.Humanização,
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: '#ef4444',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }
+            ]
+        },
+        options: { /* 🔒 TODO O DESIGN PERMANECE IGUAL */ 
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy' },
+                    title: { display: true, text: 'Data', color: '#374151', font: { weight: '600' } }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Comentários', color: '#374151', font: { weight: '600' } }
+                }
+            }
+        }
+    });
+}
+
+
+
+// --- NOVO: Função para criar o gráfico de dispersão de curtidas ---
+
+
+function criarGraficoDispersaoCurtidas(dadosCSV) {
+    const ctx = document.getElementById('graficoDispersaoCurtidas');
+    if (!ctx) return;
+
+    if (graficoDispersaoCurtidasChart) graficoDispersaoCurtidasChart.destroy();
+
+    const dados = prepararDadosDispersaoCSV(dadosCSV, 'LIKES');
+
+    graficoDispersaoCurtidasChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Autenticidade',
+                    data: dados.Autenticidade,
+                    backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                    borderColor: '#2563eb',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Competência',
+                    data: dados.Competência,
+                    backgroundColor: 'rgba(75, 85, 99, 0.8)',
+                    borderColor: '#4b5563',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Humanização',
+                    data: dados.Humanização,
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: '#ef4444',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }
+            ]
+        },
+        options: { /* 🔒 DESIGN ORIGINAL PRESERVADO */ 
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy' },
+                    title: { display: true, text: 'Data', color: '#374151', font: { weight: '600' } }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Curtidas', color: '#374151', font: { weight: '600' } }
+                }
+            }
+        }
+    });
+}
+
+
+
+// ========================================================================
+// --- SUBSTITUA TODO O BLOCO A PARTIR DAQUI ---
+// ========================================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        navItems.forEach(navItem => {
+            navItem.addEventListener('click', (event) => {
+                event.preventDefault(); 
+                const targetId = navItem.getAttribute('data-target');
+                
+                navItems.forEach(item => item.classList.remove('active'));
+                navItem.classList.add('active');
+                
+                tabContents.forEach(content => content.style.display = 'none');
+                
+                const targetContent = document.getElementById(targetId);
+                
+                // --- INÍCIO DO BLOCO CORRIGIDO ---
+                if (targetContent) {
+                    targetContent.style.display = 'block';
+
+                    // --- ATUALIZAÇÃO AQUI ---
+                    if (targetId === 'Categoria1') {
+                        
+                        criarGraficoDispersaoComentarios(results.data);
+                        criarGraficoDispersaoCurtidas(results.data);
+                        
+                        // --- MOVIDO PARA AQUI ---
+                        if (!nuvensIniciadas) {
+                            iniciarNuvemDePalavras();
+                            nuvensIniciadas = true; // (Corrigi o typo aqui também)
+                        }
+                    } 
+                    // ADICIONE ESTE BLOCO
+                    if (targetId === 'Categoria2') {
+    criarGraficoSentimentosTempo(dadosCSVGlobal);
+    criarListaSentimentos(dadosCSVGlobal);
+}
+                    // FIM DO BLOCO ADICIONADO
+
+                    // --- NOVO: Gatilho para o gráfico de radar ---
+                    if (targetId === 'Categoria3') {
+                        criarGraficoRadar(dadosCSVGlobal);
+                    }
+                    // --- FIM DA ATUALIZAÇÃO ---
+                    
+                } // <-- A CHAVE QUE FECHA 'if (targetContent)' VEM AQUI, DEPOIS DE TUDO.
+                // --- FIM DO BLOCO CORRIGIDO ---
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+        
+        // Também inicializa gráficos caso a aba já esteja visível ao carregar
+        const activeTab = document.querySelector('.nav-item.active');
+        
+        // --- INÍCIO DO SEGUNDO BLOCO CORRIGIDO ---
+        if (activeTab) {
+            const startId = activeTab.getAttribute('data-target');
+            
+            if (startId === 'Categoria1') {
+                
+                criarGraficoDispersaoComentarios(results.data);
+                criarGraficoDispersaoCurtidas(results.data);
+
+                // --- MOVIDO PARA AQUI ---
+                if (!nuvensIniciadas) {
+                    iniciarNuvemDePalavras();
+                    nuvensIniciadas = true;
+                }
+            } 
+            
+            // ADICIONE ESTE BLOCO
+            if (startId === 'Categoria2') {
+    criarGraficoSentimentosTempo(dadosCSVGlobal);
+    criarListaSentimentos(dadosCSVGlobal);
+}
+            // FIM DO BLOCO ADICIONADO
+            
+            if (startId === 'Categoria3') {
+                criarGraficoRadar(dadosCSVGlobal);
+            }
+        }
+        // --- FIM DO SEGUNDO BLOCO CORRIGIDO ---
+        
+        
+        // --- LÓGICA DO LIGHTBOX (Existente, sem alterações) ---
+        const lightbox = document.getElementById('imageLightbox');
+        const lightboxImg = document.getElementById('lightboxImageSrc');
+        const closeBtn = document.querySelector('.lightbox-close');
+
+        if (lightbox && lightboxImg && closeBtn) {
+            
+            const contentImages = document.querySelectorAll('.main-content img');
+            
+            contentImages.forEach(img => {
+                if (!img.src.endsWith('.gif') && !img.classList.contains('profile-pic')) {
+                    img.addEventListener('click', () => {
+                        lightboxImg.src = img.src; 
+                        lightbox.classList.add('show'); 
+                    });
+                }
+            });
+
+            const closeLightbox = () => {
+                lightbox.classList.remove('show'); 
+                setTimeout(() => { lightboxImg.src = ''; }, 300); 
+            };
+
+            closeBtn.addEventListener('click', closeLightbox); 
+            
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) { 
+                    closeLightbox();
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && lightbox.classList.contains('show')) {
+                    closeLightbox();
+                }
+            });
+        }
+        
+        
+        // --- LÓGICA DE COMPARTILHAMENTO (Existente, sem alterações) ---
+        const shareBtn = document.getElementById('mobileShareBtn');
+        
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                
+                const shareData = {
+                    title: 'Dashboard Lula 2025',
+                    text: 'Confira o dashboard de posicionamento e percepção da audiência.',
+                    url: window.location.href 
+                };
+                
+                if (navigator.share) {
+                    try {
+                        await navigator.share(shareData);
+                        console.log('Conteúdo compartilhado com sucesso!');
+                    } catch (err) {
+                        console.error('Erro ao compartilhar:', err);
+                    }
+                } else {
+                    alert('O compartilhamento não é suportado neste navegador.');
+                }
+            });
+        }
+        
+    });
+
+    
+
+// SUBSTITUA A FUNÇÃO 'criarGraficoSentimentosTempo' INTEIRA POR ESTA
+function criarGraficoSentimentosTempo(dadosCSV) {
+    const ctx = document.getElementById('graficoSentimentosTempo');
+    if (!ctx) return;
+
+    if (window.graficoSentimentosTempoChart instanceof Chart) {
+        window.graficoSentimentosTempoChart.destroy();
+    }
+
+    const { labels, series } = prepararSerieHistoricaSentimentos(dadosCSV);
+
+    window.graficoSentimentosTempoChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Confiança',
+                    data: series.CONFIANCA,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Felicidade',
+                    data: series.FELICIDADE,
+                    borderColor: '#16a34a',
+                    backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Expectativa',
+                    data: series.EXPECTATIVA,
+                    borderColor: '#f97316',
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Surpresa',
+                    data: series.SURPRESA,
+                    borderColor: '#facc15',
+                    backgroundColor: 'rgba(250, 204, 21, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Medo',
+                    data: series.MEDO,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Tristeza',
+                    data: series.TRISTEZA,
+                    borderColor: '#64748b',
+                    backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Raiva',
+                    data: series.RAIVA,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Repulsa',
+                    data: series.REPULSA,
+                    borderColor: '#713f12',
+                    backgroundColor: 'rgba(113, 63, 18, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: v => v + '%',
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        color: 'rgba(209, 213, 219, 0.3)'
+                    }
+                },
+                x: {
+                    ticks: { color: '#6b7280' },
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#374151',
+                        usePointStyle: true,
+                        boxWidth: 8
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: ctx =>
+                            ` ${ctx.dataset.label}: ${ctx.raw}%`
+                    }
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            }
+        }
+    });
+}
+
+// --- 1. LÓGICA DE NAVEGAÇÃO (TABS) - Apenas uma vez ---
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        this.classList.add('active');
+        const target = this.getAttribute('data-target');
+        document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+        const targetElement = document.getElementById(target);
+        if (targetElement) targetElement.style.display = 'block';
+    });
+});
+
+// --- 2. CARREGAMENTO DO CSV ---
+function carregarDadosCSV() {
+    console.log("Iniciando carregamento do CSV...");
+    Papa.parse("dados.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+
+    dadosCSVGlobal = results.data; // ✅ AGORA OS DADOS EXISTEM GLOBALMENTE
+
+    gerarListaGenerica(dadosCSVGlobal, 'container-comentarios-csv', 'N° COMENTÁRIOS', 'coment');
+    gerarListaGenerica(dadosCSVGlobal, 'container-curtidas-csv', 'LIKES', 'curt');
+
+    gerarGraficoCategoriasCSV(dadosCSVGlobal);
+
+    criarGraficoDispersaoComentarios(dadosCSVGlobal);
+    criarGraficoDispersaoCurtidas(dadosCSVGlobal);
+
+    // 🔥 SE A ABA 2 JÁ ESTIVER ABERTA
+    const abaAtiva = document.querySelector('.nav-item.active')?.getAttribute('data-target');
+    if (abaAtiva === 'Categoria2') {
+        criarGraficoSentimentosTempo(dadosCSVGlobal);
+        criarListaSentimentos(dadosCSVGlobal);
+    }
+},
+
+
+        error: function(error) {
+            console.error("Erro ao carregar CSV:", error);
+            alert("Erro ao carregar o arquivo dados.csv. Verifique o console.");
+        }
+    });
+}
+
+function prepararDadosDispersaoCSV(dados, colunaValor) {
+
+    const mapaCategorias = {
+        "Autenticidade": "Autenticidade",
+        "Autoridade": "Competência",
+        "Humanização": "Humanização"
+    };
+
+    const resultado = {
+        Autenticidade: [],
+        Competência: [],
+        Humanização: []
+    };
+
+    dados.forEach(item => {
+        const categoriaOriginal = item.CATEGORIA?.trim();
+        const categoria = mapaCategorias[categoriaOriginal];
+        const data = item.DATA;
+        const valor = parseInt(item[colunaValor]);
+
+        if (categoria && data && !isNaN(valor)) {
+            resultado[categoria].push({
+                x: data,
+                y: valor
+            });
+        }
+    });
+
+    return resultado;
+}
+
+
+function gerarGraficoCategoriasCSV(dados) {
+    const categorias = ["Autenticidade", "Autoridade", "Humanização"];
+
+    const contagem = {
+        Autenticidade: 0,
+        Autoridade: 0,
+        Humanização: 0
+    };
+
+    dados.forEach(item => {
+        const cat = item.CATEGORIA?.trim();
+        if (contagem.hasOwnProperty(cat)) {
+            contagem[cat]++;
+        }
+    });
+
+    const total = Object.values(contagem).reduce((a, b) => a + b, 0);
+
+    const percentuais = categorias.map(cat =>
+        total > 0 ? Math.round((contagem[cat] / total) * 100) : 0
+    );
+
+    criarGraficoCategorias(percentuais);
+}
+
+
+// --- 3. FUNÇÃO ÚNICA PARA GERAR AMBAS AS LISTAS (Com coluna Observação) ---
+function gerarListaGenerica(dados, containerId, colunaMetrica, prefixoId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const categoriasDesejadas = ["Autenticidade", "Autoridade", "Humanização"];
+    let htmlFinal = "";
+
+    categoriasDesejadas.forEach((categoriaNome, index) => {
+        const itensFiltrados = dados
+            .filter(item => item.CATEGORIA && item.CATEGORIA.trim() === categoriaNome)
+            .sort((a, b) => (parseInt(b[colunaMetrica]) || 0) - (parseInt(a[colunaMetrica]) || 0));
+
+        if (itensFiltrados.length > 0) {
+            const ID_DOM = `tabela-${prefixoId}-${index}`;
+            const LIMITE = 3;
+
+            htmlFinal += `
+                <div class="categoria-grupo">
+                    <h4 class="categoria-titulo-slug">${categoriaNome}</h4>
+                    <div class="categoria-container">
+                        <div class="tabela-scroll">
+                        <table class="tabela-dados" id="${ID_DOM}">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>${prefixoId === 'coment' ? 'Comentários' : 'Curtidas'}</th>
+                                    <th>Observação</th> <th>Link</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itensFiltrados.map((item, idx) => {
+    const classeOculta = idx >= LIMITE ? 'linha-oculta' : '';
+    const valorExibido = item[colunaMetrica] || 0;
+    const obs = item["OBSERVACAO"] || "Sem observações para este post.";
+    const link = item["LINK POSTAGEM"] || item["LINK"] || "#";
+    const rowId = `${prefixoId}-obs-${index}-${idx}`; // ID único para a gaveta
+
+    return `
+    <tr class="${classeOculta}" style="${idx >= LIMITE ? 'display:none;' : ''}">
+        <td>${item.DATA || '-'}</td>
+        <td><span class="badge-comentarios">${valorExibido}</span></td>
+        <td>
+            <button class="btn-gaveta" onclick="toggleGaveta('${rowId}')">
+                <i class="fas fa-eye"></i> Obs
+            </button>
+        </td>
+        <td><a href="${link}" target="_blank" class="btn-ver-post">Ver Post</a></td>
+    </tr>
+    <tr id="${rowId}" class="linha-gaveta" style="display: none;">
+        <td colspan="4">
+            <div class="gaveta-conteudo">
+                <strong>Observação:</strong> ${obs}
+            </div>
+        </td>
+    </tr>`;
+}).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                        ${itensFiltrados.length > LIMITE ? 
+                            `<button class="btn-expandir" onclick="toggleLinhas('${ID_DOM}', this)">
+                                Ver mais (${itensFiltrados.length - LIMITE}) <i class="fas fa-chevron-down"></i>
+                             </button>` : ''}
+                    </div>
+                </div>`;
+        }
+    });
+
+    container.innerHTML = htmlFinal || "<p>Nenhum dado encontrado.</p>";
+}
+
+// --- 4. FUNÇÃO TOGGLE REVISADA ---
+function toggleLinhas(tabelaId, btn) {
+    const tabela = document.getElementById(tabelaId);
+    const linhasOcultas = tabela.querySelectorAll('.linha-oculta');
+    const estaExpandido = btn.innerText.includes("Ver menos");
+
+    linhasOcultas.forEach(linha => {
+        linha.style.display = estaExpandido ? 'none' : 'table-row';
+    });
+
+    if (estaExpandido) {
+        btn.innerHTML = `Ver mais (${linhasOcultas.length}) <i class="fas fa-chevron-down"></i>`;
+    } else {
+        btn.innerHTML = `Ver menos <i class="fas fa-chevron-up"></i>`;
+    }
+}
+
+// --- 5. INICIALIZAÇÃO ---
+window.onload = function() {
+    carregarDadosCSV();
+};
+
+
+
+function toggleGaveta(id) {
+    const gaveta = document.getElementById(id);
+    const estaAberta = gaveta.style.display === 'table-row';
+    
+    // Opcional: Fecha outras gavetas abertas para manter o foco (minimalismo)
+    // document.querySelectorAll('.linha-gaveta').forEach(g => g.style.display = 'none');
+
+    gaveta.style.display = estaAberta ? 'none' : 'table-row';
+}
+
+function normalizarPercentual(valor) {
+    if (valor === null || valor === undefined) return 0;
+
+    return parseFloat(
+        valor
+            .toString()
+            .replace('%', '')
+            .replace(',', '.')
+            .trim()
+    ) || 0;
+}
+
+function criarListaSentimentos(dadosCSV) {
+    const container = document.getElementById('container-sentimentos-csv');
+    if (!container) return;
+
+    const sentimentos = [
+        { chave: 'CONFIANCA', nome: 'Confiança' },
+        { chave: 'FELICIDADE', nome: 'Felicidade' },
+        { chave: 'EXPECTATIVA', nome: 'Expectativa' },
+        { chave: 'SURPRESA', nome: 'Surpresa' },
+        { chave: 'MEDO', nome: 'Medo' },
+        { chave: 'TRISTEZA', nome: 'Tristeza' },
+        { chave: 'RAIVA', nome: 'Raiva' },
+        { chave: 'REPULSA', nome: 'Repulsa' }
+    ];
+
+    const LIMITE = 3;
+    container.innerHTML = '';
+
+    sentimentos.forEach((sentimento, idxSent) => {
+
+        const itens = dadosCSV
+            .filter(l => l[sentimento.chave] !== undefined && l[sentimento.chave] !== '')
+            .sort(
+                (a, b) =>
+                    normalizarPercentual(b[sentimento.chave]) -
+                    normalizarPercentual(a[sentimento.chave])
+            );
+
+        if (!itens.length) return;
+
+        const tabelaId = `tabela-sent-${idxSent}`;
+
+        let html = `
+        <div class="categoria-grupo">
+            <h4 class="categoria-titulo-slug">${sentimento.nome}</h4>
+            <div class="categoria-container">
+                <div class="tabela-scroll">
+                <table class="tabela-dados" id="${tabelaId}">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>${sentimento.nome}</th>
+                            <th>Observação</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        itens.forEach((item, idx) => {
+            const rowId = `gaveta-sent-${idxSent}-${idx}`;
+            const oculto = idx >= LIMITE ? 'linha-oculta' : '';
+            const display = idx >= LIMITE ? 'display:none;' : '';
+
+            const valor = normalizarPercentual(item[sentimento.chave]);
+
+            html += `
+            <tr class="${oculto}" style="${display}">
+                <td>${item.DATA || '-'}</td>
+                <td>
+                    <span class="badge-comentarios">
+                        ${valor}%
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-gaveta" onclick="toggleGaveta('${rowId}')">
+                        <i class="fas fa-eye"></i> Obs
+                    </button>
+                </td>
+                <td>
+                    <a href="${item['LINK POSTAGEM'] || '#'}"
+                       target="_blank"
+                       class="btn-ver-post">
+                        Ver Post
+                    </a>
+                </td>
+            </tr>
+            <tr id="${rowId}" class="linha-gaveta" style="display:none;">
+                <td colspan="4">
+                    <div class="gaveta-conteudo">
+                        <strong>Observação:</strong>
+                        ${item['OBSERVACAO'] || 'Sem observação.'}
+                    </div>
+                </td>
+            </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+                </div>
+                ${itens.length > LIMITE ? `
+                <button class="btn-expandir" onclick="toggleLinhas('${tabelaId}', this)">
+                    Ver mais (${itens.length - LIMITE}) <i class="fas fa-chevron-down"></i>
+                </button>` : ''}
+            </div>
+        </div>
+        `;
+
+        container.innerHTML += html;
+    });
+}
+
+let sentimentosCriados = false;
+
+if (targetId === 'Categoria2' && !sentimentosCriados) {
+    criarGraficoSentimentosTempo(dadosCSVGlobal);
+    criarListaSentimentos(dadosCSVGlobal);
+    sentimentosCriados = true;
+}
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.1.1/wordcloud2.min.js"></script>
+
+<script>
+  /* =========================
+   CONFIGURAÇÕES
+========================= */
+const FREQUENCIA_MINIMA = 10;
+
+const stopwords = new Set([
+  "a","ao","aos","as","o","os","um","uma","uns","umas",
+  "de","do","da","dos","das","em","no","na","nos","nas",
+  "por","para","com","sem","sobre","entre",
+  "que","quem","quando","onde","como",
+  "é","são","foi","foram","ser","estar",
+  "se","não","sim","mais","menos","muito","muita","muitos","muitas"
+]);
+
+const canvas = document.getElementById("wordcloud");
+const tooltip = document.getElementById("tooltip");
+
+const btnDiscurso = document.getElementById("btnDiscurso");
+const btnAudiencia = document.getElementById("btnAudiencia");
+
+/* =========================
+   BOTÕES
+========================= */
+btnDiscurso.addEventListener("click", () => carregarCSV("discurso.csv", btnDiscurso));
+btnAudiencia.addEventListener("click", () => carregarCSV("audiencia.csv", btnAudiencia));
+
+function ativarBotao(botaoAtivo) {
+  [btnDiscurso, btnAudiencia].forEach(btn => btn.classList.remove("active"));
+  botaoAtivo.classList.add("active");
+}
+
+/* =========================
+   LEITURA CSV (FETCH)
+========================= */
+function carregarCSV(arquivo, botao) {
+  ativarBotao(botao);
+
+  fetch(arquivo)
+    .then(res => res.text())
+    .then(csv => {
+      Papa.parse(csv, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          const textos = results.data.flatMap(row => [
+            row.Caption,
+            row["Comment Text"]
+          ]).filter(Boolean);
+
+          gerarNuvem(textos);
+        }
+      });
+    })
+    .catch(() => alert("Erro ao carregar o arquivo " + arquivo));
+}
+
+/* =========================
+   NUVEM
+========================= */
+function gerarNuvem(textos) {
+  const frequencia = {};
+
+  textos.forEach(texto => {
+    texto
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s]/g, "")
+      .split(/\s+/)
+      .forEach(palavra => {
+        if (palavra.length > 2 && !stopwords.has(palavra)) {
+          frequencia[palavra] = (frequencia[palavra] || 0) + 1;
+        }
+      });
+  });
+
+  const wordData = Object.entries(frequencia)
+    .filter(([_, c]) => c >= FREQUENCIA_MINIMA)
+    .sort((a, b) => b[1] - a[1]);
+
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  WordCloud(canvas, {
+    list: wordData,
+    gridSize: Math.round(10 * window.devicePixelRatio),
+    weightFactor: size => Math.sqrt(size) * 18,
+    fontFamily: "Georgia, serif",
+    rotateRatio: 0.03,
+    backgroundColor: "#ffffff",
+
+    color: function (word, weight) {
+
+  const paleta = [
+    "#1e3a8a", // azul profundo
+    "#2563eb", // azul
+    "#0ea5e9", // azul claro
+    "#14b8a6", // teal
+    "#059669", // verde
+    "#84cc16", // verde lima
+    "#ca8a04", // amarelo queimado
+    "#f97316", // laranja
+    "#ea580c", // laranja forte
+    "#dc2626", // vermelho
+    "#db2777", // rosa
+    "#7c3aed"  // roxo
+  ];
+
+  // palavras mais relevantes tendem a cores mais fortes
+  if (weight > 45) return "#7c2d12"; // destaque máximo
+  if (weight > 35) return "#991b1b";
+  if (weight > 28) return "#6d28d9";
+
+  // leve aleatoriedade para variar
+  const index = Math.floor(Math.random() * paleta.length);
+  return paleta[index];
+},
+
+    hover: function (item) {
+  if (!item) return;
+
+  // Tooltip nativo do navegador
+  canvas.title = `Menções: ${item[1]}`;
+}
+  });
+}
+
+/* =========================
+   CARREGA PADRÃO
+========================= */
+carregarCSV("discurso.csv", btnDiscurso);
+
+document.getElementById('toggleLuisa').addEventListener('change', e => {
+  mostrarLuisa = e.target.checked;
+
+  if (mostrarLuisa && !dadosRadarLuisa) {
+    carregarLuisaCSV();
+  } else {
+    criarGraficoRadar(dadosCSVGlobal);
+    atualizarPISM();
+  }
+});
+
+function carregarLuisaCSV() {
+  Papa.parse('luisa.csv', {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: res => {
+      dadosRadarLuisa = calcularDadosRadarMarcaHumana(res.data);
+      criarGraficoRadar(dadosCSVGlobal);
+      atualizarPISM();
+    }
+  });
+}
+
+function animarIndicador(id, valor) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const normalizado = Math.max(0, Math.min(valor / 100, 1));
+
+  el.style.bottom = (normalizado * 100) + '%';
+  el.setAttribute(
+    'data-value',
+    normalizado.toFixed(3).replace('.', ',')
+  );
+}
+
+
+function atualizarPISM() {
+  animarIndicador('indicatorDaniel', dadosRadarDaniel.pism);
+
+  if (mostrarLuisa && dadosRadarLuisa) {
+    document.getElementById('indicatorLuisa').style.display = 'block';
+    animarIndicador('indicatorLuisa', dadosRadarLuisa.pism);
+  } else {
+    document.getElementById('indicatorLuisa').style.display = 'none';
+  }
+}
+
+
+</script>
+
+
+</body>
+</html>
+
+
