@@ -379,20 +379,23 @@
     }
 
     .profile-pic {
-        width: 120px;  /* Tamanho da foto (não muito grande) */
-        height: 120px;
-        border-radius: 50%; /* Deixa circular */
-        border: 5px solid var(--bg-content); /* Borda branca (cor do card) */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra suave */
-        
-        /* O truque de posicionamento: */
-        position: absolute;
-        top: -60px;  /* Metade da altura (120px / 2) PARA CIMA */
-        left: 1.5rem; /* Alinha com o padding do card-body */
-        
-        background-color: #fff; /* Garante que não seja transparente */
-        object-fit: cover; /* Garante que a foto preencha o círculo */
-    }
+    width: 120px;
+    height: 120px;
+    aspect-ratio: 1 / 1;   /* 🔥 garante círculo perfeito */
+    border-radius: 50%;
+    object-fit: cover;
+
+    border: 5px solid var(--bg-content);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    position: absolute;
+    top: -60px;
+    left: 1.5rem;
+
+    max-width: none;       /* ⛔ cancela regra global */
+    height: 120px;         /* ⛔ força altura fixa */
+}
+
     
     .profile-name {
         font-size: 1.75rem; /* 28px - Nome com mais destaque */
@@ -1003,6 +1006,68 @@ canvas {
   border: 1px dashed #e5e7eb;
 }
 
+/* --- Footer: perfil do autor --- */
+
+.footer-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.footer-avatar {
+    width: 36px;
+    height: 36px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    object-fit: cover;
+
+    border: 2px solid var(--border-color);
+    background-color: #fff;
+}
+
+
+
+/* --- Footer: links minimalistas --- */
+
+.footer-link {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: var(--color-primary);
+}
+
+/* Nome levemente mais forte */
+.footer-name {
+    font-weight: 600;
+}
+
+
+/* --- Footer: ajuste mobile --- */
+@media (max-width: 768px) {
+    .footer-profile {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-avatar {
+        margin-bottom: 0.5rem;
+    }
+
+    .footer-text {
+        align-items: center;
+    }
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
 
     </style>
@@ -1016,7 +1081,7 @@ canvas {
         
         <aside class="sidebar">
             <div class="sidebar-header">
-                Dashboard Lula
+                Daniel Noboa
             </div>
             
             <nav class="sidebar-nav">
@@ -1049,8 +1114,8 @@ canvas {
             
             <header class="main-header">
                 <div class="main-header-text">
-                    <h2>2025</h2>
-                    <p>Posicionamento e percepção da audiência</p>
+                    <h2>2023</h2>
+                    <p>Comportamento político nas mídias sociais</p>
                 </div>
                 
                 <button class="share-button" id="mobileShareBtn" aria-label="Compartilhar">
@@ -1073,10 +1138,11 @@ canvas {
                             
                             <img src="perfil2.jpg" alt="Foto de Perfil do Candidato" class="profile-pic">
                             
-                            <h3 class="profile-name">Luiz Inácio Lula da Silva</h3>
+                            <h3 class="profile-name">Daniel Noboa Azin</h3>
                             
-                            <p>Presidente do Brasil</p>
-                            <p>(...)</p> 
+                            <p>POR UN NUEVO ECUADOR 🟪🟨</p>
+                            <p>Fundador de ADN | Presidente Constitucional de la República del Ecuador</p>
+                             
                         </div>
 
                     
@@ -1085,8 +1151,7 @@ canvas {
                     <div class="card full-width">
                         <div class="card-header"> <h3>As Marcas Humanas na Política</h3> </div>
                         <div class="card-body">
-                            <p>As marcas humanas na política são (...)</p>
-                            <p>Os 03 conceitos fundamentais para o sucesso do líder político são (...)</p>
+                            <p>A marca humana na política é simultaneamente uma pessoa e o eixo central da marca política, capaz de ser identificada e diferenciada entre as demais, recebe esforços contínuos de comunicação para construir a sua persona em consonância com a sua audiência <a href="https://www.tandfonline.com/doi/abs/10.1080/15377857.2025.2491333" target="_blank" rel="noopener noreferrer">(Reis Soares et al., 2025)</a>. De acordo com o estudo, as marcas humanas na política são constituídas de conceitos fundamentais inatos aos seres humanos, mas não podem ser marcas autônomas devido a dependência do partido e das pautas políticas para que possam assegurar e evidenciar sua autenticidade e competência.</p>
                         </div>
                     </div>
 
@@ -1099,7 +1164,7 @@ canvas {
                 <div class="card full-width">
                     <div class="card-header"><h3>Análise de Conteúdo</h3></div>
                     <div class="card-body">
-                        <p>A Análise de conteúdo é (...) e nesta seção focamos nas seguintes plataformas:</p>
+                        <p>A análise qualitativa de conteúdo, conforme delineada por <a href="https://uk.sagepub.com/en-gb/eur/qualitative-content-analysis/book269922" target="_blank" rel="noopener noreferrer">Mayring (2021)</a>, é um método sistemático e teórico-empírico aplicado nesta pesquisa para examinar as postagens, com o objetivo de identificar relações entre as postagens e recepção da audiência. Usando análise de conteúdo visual <a href="https://sk.sagepub.com/book/mono/visual-methodologies-5e/back-matter/s9781036231576.i1626" target="_blank" rel="noopener noreferrer">(Rose, 2016)<a/>, classificamos iterativamente as imagens para seus componentes materiais e expressivos <a href="https://www.emerald.com/ejm/article-abstract/50/9-10/1789/30022/Heterotopian-selfies-how-social-media-destabilizes?redirectedFrom=fulltext" target="_blank" rel="noopener noreferrer">(Rokka e Canniford, 2016;</a><a href="https://www.tandfonline.com/doi/full/10.1080/10253866.2019.1657099" target="_blank" rel="noopener noreferrer"> Schops et al., 2020)</a>, até atingirmos a saturação teórica em 640 postagens, composta por 1.079 imagens e 434 vídeos, baseados em categorias amplamente discutidas na literatura sobre marcas humanas no ambiente político.</p>
                     </div>
                 </div>              
  
@@ -1111,7 +1176,7 @@ canvas {
         <div class="card-grid">
             <div class="card full-width destaque-grafico">
                 
-                <div class="card-header"><h3>Distribuição das categorias</h3></div>
+                <div class="card-header"><h3>Classificação</h3></div>
                 <div class="card-body">
                     
                     <div class="chart-container">
@@ -1136,7 +1201,7 @@ canvas {
                                     
 
                                         <div class="card full-width">
-    <div class="card-header"><h3>Postagens mais comentadas por Categoria</h3></div>
+    <div class="card-header"><h3>Mais comentadas</h3></div>
     <div class="card-body" id="container-comentarios-csv">
         <p>Carregando dados da planilha...</p>
     </div>
@@ -1146,7 +1211,7 @@ canvas {
 </div>
 </div>
 <div class="card full-width destaque-grafico">
-    <div class="card-header"><h3>Postagens mais curtidas</h3></div>
+    <div class="card-header"><h3>Curtidas</h3></div>
     <div class="card-body">
         
         <div class="chart-container">
@@ -1155,7 +1220,7 @@ canvas {
         
 
         <div class="card full-width">
-    <div class="card-header"><h3>Postagens mais curtidas por Categoria</h3></div>
+    <div class="card-header"><h3>Mais curtidas</h3></div>
     <div class="card-body" id="container-curtidas-csv">
         <p>Carregando dados da planilha...</p>
     </div>
@@ -1168,44 +1233,52 @@ canvas {
 <div class="card">
   
 
-  <div class="toggle-container">
-    <button id="btnDiscurso" class="active">Discurso</button>
-    <button id="btnAudiencia">Audiência</button>
-  </div>
+  
 
   <canvas id="wordcloud" width="900" height="520"></canvas>
+
+
   
 </div>
 
 
                             </div>
                         </div>
-                    </div> 
+                    </div>
+                    
+                    <div class="card full-width card-compare">
+    <div class="card-body">
+      <div class="toggle-container">
+    <button id="btnDiscurso" class="active">Discurso</button>
+    <button id="btnAudiencia">Audiência</button>
+  </div>
+    </div>
+  </div>
                 </details>
             </section>
                 
             <section id="Categoria2" class="tab-content">
                 <div class="card full-width">
                     <div class="card-header"><h3>Análise de Sentimentos</h3></div>
-                    <div class="card-body"><p>A Análise de sentimentos é (...)</p></div>
+                    <div class="card-body"><p>A análise de sentimento pode explorar opiniões, sentimentos, avaliações, atitudes e emoções na linguagem escrita <a href="https://www.sciencedirect.com/science/article/abs/pii/S0040162516304784" target="_blank" rel="noopener noreferrer">(Kayser e Blind, 2017;</a><a href="https://www.tandfonline.com/doi/full/10.1080/17517575.2019.1599446" target="_blank" rel="noopener noreferrer"> Grover et al., 2019;</a><a href="https://link.springer.com/article/10.1186/s12889-021-11165-1" target="_blank" rel="noopener noreferrer"> Biancovilli et al., 2022;</a><a href="https://www.scielo.br/j/dados/a/KyX4jrLF7XhqSzLyjjCRDGJ/?format=html&lang=pt" target="_blank" rel="noopener noreferrer"> Oliveira, 2023)</a>. Neste estudo, utilizamos Processamento de Linguagem Natural (PLN) através da linguagem de programação R para analisar os textos das legendas e dos comentários. A biblioteca syuzhet foi empregada para classificar o conteúdo em oito emoções: Alegria, confiança, surpresa, expectativa, tristeza, medo, repulsa, raiva. A análise identificou os sentimentos predominantes nos comentários de cada postagem, permitindo relacionar a recepção do público ao conteúdo publicado pelo candidato.</p></div>
                 </div>
 
                 <details class="accordion-item accordion-plataforma open">
                     <summary class="accordion-header">Instagram</summary>
                     <div class="accordion-content">
                         <div class="card destaque-grafico">
-    <div class="card-header"><h3>Comportamento da Audiência (Série Histórica)</h3></div>
+    <div class="card-header"><h3>Comportamento da Audiência</h3></div>
     <div class="card-body">
         <div class="chart-container">
             <canvas id="graficoSentimentosTempo"></canvas>
         </div>
-        <p>Explicação breve(...)</p>
+        <p></p>
     </div>
 </div>
 
 <div class="card full-width">
   <div class="card-header">
-    <h3>Destaques por Sentimento</h3>
+    
   </div>
   <div class="card-body" id="container-sentimentos-csv">
     <p>Carregando dados da planilha...</p>
@@ -1249,8 +1322,8 @@ canvas {
       <div class="card-body">
         <div class="pism-vertical-wrapper">
           <div class="pism-scale">
-            <span class="scale-top">1,0</span>
-            <span class="scale-bottom">0,0</span>
+            <span class="scale-top">1</span>
+            <span class="scale-bottom">0</span>
           </div>
 
           <div class="pism-bar-vertical">
@@ -1303,13 +1376,36 @@ canvas {
             </section>
             <footer class="footer">
                 <div class="footer-info">
-                    <p>Desenvolvido por: <strong>Vitor Reis Soares</strong></p>
-                    <p class="cargo">Especialista em Marketing Político</p>
-                </div>
+    <div class="footer-profile">
+    <img src="vitor.jpg" alt="Foto de Vitor Reis Soares" class="footer-avatar">
+
+    <div class="footer-text">
+        <p>
+            <a href="https://vitorreissoares.github.io/profile/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="footer-link footer-name">
+               Vitor Reis Soares
+            </a>
+        </p>
+
+        <p class="cargo">
+            Doutorando em Ciência Política •
+            <a href="https://www.iesp.uerj.br"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="footer-link">
+               IESP-UERJ
+            </a>
+        </p>
+    </div>
+</div>
+</div>
+
                 <div class="footer-links">
-                    <a href="[#]" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                    <a href="https://www.linkedin.com/in/vitorreissoares/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
                     <a href="https://scholar.google.com/citations?user=0BSfm-wAAAAJ&hl=pt-BR&oi=ao" target="_blank" rel="noopener noreferrer">Google Scholar</a>
-                    <a href="[#]" target="_blank" rel="noopener noreferrer">Github</a>
+                    <a href="https://github.com/vitorreissoares" target="_blank" rel="noopener noreferrer">Github</a>
                 </div>
             </footer>           
 
@@ -1697,11 +1793,11 @@ function criarGraficoDispersaoComentarios(dadosCSV) {
                 x: {
                     type: 'time',
                     time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy' },
-                    title: { display: true, text: 'Data', color: '#374151', font: { weight: '600' } }
+                    title: { display: true, text: '', color: '#374151', font: { weight: '600' } }
                 },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Comentários', color: '#374151', font: { weight: '600' } }
+                    title: { display: true, text: '', color: '#374151', font: { weight: '600' } }
                 }
             }
         }
@@ -1759,11 +1855,11 @@ function criarGraficoDispersaoCurtidas(dadosCSV) {
                 x: {
                     type: 'time',
                     time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy' },
-                    title: { display: true, text: 'Data', color: '#374151', font: { weight: '600' } }
+                    title: { display: true, text: '', color: '#374151', font: { weight: '600' } }
                 },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Curtidas', color: '#374151', font: { weight: '600' } }
+                    title: { display: true, text: '', color: '#374151', font: { weight: '600' } }
                 }
             }
         }
@@ -1908,8 +2004,8 @@ function criarGraficoDispersaoCurtidas(dadosCSV) {
             shareBtn.addEventListener('click', async () => {
                 
                 const shareData = {
-                    title: 'Dashboard Lula 2025',
-                    text: 'Confira o dashboard de posicionamento e percepção da audiência.',
+                    title: 'Dashboard Noboa 2023',
+                    text: 'Comportamento político nas mídias sociais.',
                     url: window.location.href 
                 };
                 
@@ -2191,7 +2287,7 @@ function gerarListaGenerica(dados, containerId, colunaMetrica, prefixoId) {
                                 <tr>
                                     <th>Data</th>
                                     <th>${prefixoId === 'coment' ? 'Comentários' : 'Curtidas'}</th>
-                                    <th>Observação</th> <th>Link</th>
+                                    <th>Análise</th> <th>Link</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2208,7 +2304,7 @@ function gerarListaGenerica(dados, containerId, colunaMetrica, prefixoId) {
         <td><span class="badge-comentarios">${valorExibido}</span></td>
         <td>
             <button class="btn-gaveta" onclick="toggleGaveta('${rowId}')">
-                <i class="fas fa-eye"></i> Obs
+                <i class="fas fa-eye"></i>
             </button>
         </td>
         <td><a href="${link}" target="_blank" class="btn-ver-post">Ver Post</a></td>
@@ -2216,7 +2312,7 @@ function gerarListaGenerica(dados, containerId, colunaMetrica, prefixoId) {
     <tr id="${rowId}" class="linha-gaveta" style="display: none;">
         <td colspan="4">
             <div class="gaveta-conteudo">
-                <strong>Observação:</strong> ${obs}
+                <strong>Análise:</strong> ${obs}
             </div>
         </td>
     </tr>`;
@@ -2324,7 +2420,7 @@ function criarListaSentimentos(dadosCSV) {
                         <tr>
                             <th>Data</th>
                             <th>${sentimento.nome}</th>
-                            <th>Observação</th>
+                            <th>Análise</th>
                             <th>Link</th>
                         </tr>
                     </thead>
@@ -2348,7 +2444,7 @@ function criarListaSentimentos(dadosCSV) {
                 </td>
                 <td>
                     <button class="btn-gaveta" onclick="toggleGaveta('${rowId}')">
-                        <i class="fas fa-eye"></i> Obs
+                        <i class="fas fa-eye"></i> 
                     </button>
                 </td>
                 <td>
@@ -2362,7 +2458,7 @@ function criarListaSentimentos(dadosCSV) {
             <tr id="${rowId}" class="linha-gaveta" style="display:none;">
                 <td colspan="4">
                     <div class="gaveta-conteudo">
-                        <strong>Observação:</strong>
+                        <strong>Análise:</strong>
                         ${item['OBSERVACAO'] || 'Sem observação.'}
                     </div>
                 </td>
