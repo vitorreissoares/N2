@@ -1069,6 +1069,61 @@ canvas {
     align-items: center;
 }
 
+.footer-profile {
+    display: flex;
+    flex-direction: column; /* 👈 FOTO EM CIMA */
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem; /* espaço entre foto e texto */
+}
+
+
+.footer-text {
+    text-align: center;
+}
+
+
+.footer-avatar {
+    width: 72px;       /* ou o tamanho que você preferir */
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem; /* espaço entre blocos */
+}
+
+.footer-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.footer-text {
+    text-align: center;
+}
+
+.footer-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap; /* quebra linha no mobile */
+}
+
+.footer-links a {
+    text-decoration: none;
+    font-weight: 500;
+    color: inherit;
+}
+
+
+
 
     </style>
 </head>
@@ -1184,6 +1239,13 @@ canvas {
                     </div>
                 </div>
             </div>
+
+            <div class="card full-width destaque-grafico">
+    <h3 class="card-title"></h3>
+    <div class="chart-container">
+        <canvas id="graficoPostagensPorDia"></canvas>
+    </div>
+</div>
 
             
                             
@@ -1422,6 +1484,15 @@ canvas {
     
     <script>
 
+        const coresCategorias = {
+    'Autenticidade': 'rgba(37, 99, 235, 0.85)',
+    'Competência': 'rgba(75, 85, 99, 0.85)',
+    'Humanização': 'rgba(239, 68, 68, 0.85)'
+};
+
+
+        let graficoPostagensPorDiaChart = null;
+
         let dadosRadarDaniel = null;
 let dadosRadarLuisa = null;
 let mostrarLuisa = false;
@@ -1542,7 +1613,7 @@ const indicador = document.getElementById('indicatorValue');
     // --- NOVO: GRÁFICO DE SÉRIE HISTÓRICA ---
     let graficoSentimentosTempoChart = null;
 
-    function criarGraficoCategorias(percentuais) {
+    function criarGraficoCategorias(percentuais, labels) {
     const ctx = document.getElementById('graficoCategorias');
     if (!ctx) return;
 
@@ -1551,26 +1622,18 @@ const indicador = document.getElementById('indicatorValue');
     graficoCategoriasChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Autenticidade', 'Competência', 'Humanização'],
+            labels: labels,
             datasets: [{
-                label: '% de Distribuição',
-                data: percentuais,
-                backgroundColor: [
-                    'rgba(37, 99, 235, 0.8)',
-                    'rgba(75, 85, 99, 0.8)',
-                    'rgba(147, 197, 253, 0.8)'
-                ],
-                barThickness: 15,
-                categoryPercentage: 0.1,
-                barPercentage: 0.3,
-                borderRadius: 10,
-                borderSkipped: false,
-                hoverBackgroundColor: [
-                    'rgba(37, 99, 235, 1)',
-                    'rgba(75, 85, 99, 1)',
-                    'rgba(147, 197, 253, 1)'
-                ],
-            }]
+    label: '% de Distribuição',
+    data: percentuais,
+    backgroundColor: labels.map(label => coresCategorias[label]),
+    hoverBackgroundColor: labels.map(label => coresCategorias[label]),
+    barThickness: 15,
+    categoryPercentage: 0.1,
+    barPercentage: 0.3,
+    borderRadius: 10,
+    borderSkipped: false
+}]
         },
         options: {
             indexAxis: 'y',
@@ -1898,6 +1961,8 @@ function criarGraficoDispersaoCurtidas(dadosCSV) {
                         
                         criarGraficoDispersaoComentarios(results.data);
                         criarGraficoDispersaoCurtidas(results.data);
+                        criarGraficoPostagensPorDia(dadosCSVGlobal);
+
                         
                         // --- MOVIDO PARA AQUI ---
                         if (!nuvensIniciadas) {
@@ -1936,6 +2001,8 @@ function criarGraficoDispersaoCurtidas(dadosCSV) {
                 
                 criarGraficoDispersaoComentarios(results.data);
                 criarGraficoDispersaoCurtidas(results.data);
+                criarGraficoPostagensPorDia(dadosCSVGlobal);
+
 
                 // --- MOVIDO PARA AQUI ---
                 if (!nuvensIniciadas) {
@@ -2186,6 +2253,9 @@ function carregarDadosCSV() {
     criarGraficoDispersaoComentarios(dadosCSVGlobal);
     criarGraficoDispersaoCurtidas(dadosCSVGlobal);
 
+    criarGraficoPostagensPorDia(dadosCSVGlobal);
+
+
     // 🔥 SE A ABA 2 JÁ ESTIVER ABERTA
     const abaAtiva = document.querySelector('.nav-item.active')?.getAttribute('data-target');
     if (abaAtiva === 'Categoria2') {
@@ -2235,7 +2305,6 @@ function prepararDadosDispersaoCSV(dados, colunaValor) {
 
 
 function gerarGraficoCategoriasCSV(dados) {
-    const categorias = ["Autenticidade", "Autoridade", "Humanização"];
 
     const contagem = {
         Autenticidade: 0,
@@ -2252,11 +2321,18 @@ function gerarGraficoCategoriasCSV(dados) {
 
     const total = Object.values(contagem).reduce((a, b) => a + b, 0);
 
-    const percentuais = categorias.map(cat =>
-        total > 0 ? Math.round((contagem[cat] / total) * 100) : 0
-    );
+    // 🔥 monta estrutura ordenável
+    const categoriasOrdenadas = Object.entries(contagem)
+        .map(([nome, qtd]) => ({
+    nome: nome === 'Autoridade' ? 'Competência' : nome,
+    valor: total > 0 ? Math.round((qtd / total) * 100) : 0
+}))
+        .sort((a, b) => b.valor - a.valor); // DESC
 
-    criarGraficoCategorias(percentuais);
+    const labels = categoriasOrdenadas.map(c => c.nome);
+    const percentuais = categoriasOrdenadas.map(c => c.valor);
+
+    criarGraficoCategorias(percentuais, labels);
 }
 
 
@@ -2265,12 +2341,17 @@ function gerarListaGenerica(dados, containerId, colunaMetrica, prefixoId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const categoriasDesejadas = ["Autenticidade", "Autoridade", "Humanização"];
+    const categoriasDesejadas = [
+    { csv: "Autenticidade", label: "Autenticidade" },
+    { csv: "Autoridade", label: "Competência" },
+    { csv: "Humanização", label: "Humanização" }
+];
+
     let htmlFinal = "";
 
-    categoriasDesejadas.forEach((categoriaNome, index) => {
+    categoriasDesejadas.forEach((categoria, index) => {
         const itensFiltrados = dados
-            .filter(item => item.CATEGORIA && item.CATEGORIA.trim() === categoriaNome)
+            .filter(item => item.CATEGORIA && item.CATEGORIA.trim() === categoria.csv)
             .sort((a, b) => (parseInt(b[colunaMetrica]) || 0) - (parseInt(a[colunaMetrica]) || 0));
 
         if (itensFiltrados.length > 0) {
@@ -2279,7 +2360,7 @@ function gerarListaGenerica(dados, containerId, colunaMetrica, prefixoId) {
 
             htmlFinal += `
                 <div class="categoria-grupo">
-                    <h4 class="categoria-titulo-slug">${categoriaNome}</h4>
+                    <h4 class="categoria-titulo-slug">${categoria.label}</h4>
                     <div class="categoria-container">
                         <div class="tabela-scroll">
                         <table class="tabela-dados" id="${ID_DOM}">
@@ -2559,18 +2640,29 @@ function gerarNuvem(textos) {
   const frequencia = {};
 
   textos.forEach(texto => {
-    texto
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^\w\s]/g, "")
-      .split(/\s+/)
-      .forEach(palavra => {
-        if (palavra.length > 2 && !stopwords.has(palavra)) {
-          frequencia[palavra] = (frequencia[palavra] || 0) + 1;
-        }
-      });
-  });
+
+  // 🔥 CAPTURA EMOJIS
+  const emojis = texto.match(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu);
+  if (emojis) {
+    emojis.forEach(e => {
+      frequencia[e] = (frequencia[e] || 0) + 1;
+    });
+  }
+
+  // 🔹 PROCESSA TEXTO NORMAL
+  texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, "") // mantém só letras aqui
+    .split(/\s+/)
+    .forEach(palavra => {
+      if (palavra.length > 2 && !stopwords.has(palavra)) {
+        frequencia[palavra] = (frequencia[palavra] || 0) + 1;
+      }
+    });
+});
+;
 
   const wordData = Object.entries(frequencia)
     .filter(([_, c]) => c >= FREQUENCIA_MINIMA)
@@ -2582,7 +2674,10 @@ function gerarNuvem(textos) {
   WordCloud(canvas, {
     list: wordData,
     gridSize: Math.round(10 * window.devicePixelRatio),
-    weightFactor: size => Math.sqrt(size) * 18,
+    weightFactor: (size, word) => {
+  if (/\p{Emoji}/u.test(word)) return Math.sqrt(size) * 26;
+  return Math.sqrt(size) * 18;
+},
     fontFamily: "Georgia, serif",
     rotateRatio: 0.03,
     backgroundColor: "#ffffff",
@@ -2676,6 +2771,132 @@ function atualizarPISM() {
     document.getElementById('indicatorLuisa').style.display = 'none';
   }
 }
+
+
+function prepararPostagensPorDia(dadosCSV) {
+
+    const mapaDatas = {};
+
+    dadosCSV.forEach(item => {
+        const data = item.DATA;
+        if (!data) return;
+
+        const categoriaCSV = item.CATEGORIA?.trim();
+
+        // Mapeia Autoridade → Competência
+        const categoria =
+            categoriaCSV === 'Autoridade'
+                ? 'Competência'
+                : categoriaCSV;
+
+        if (!mapaDatas[data]) {
+            mapaDatas[data] = {
+                Autenticidade: 0,
+                Competência: 0,
+                Humanização: 0
+            };
+        }
+
+        if (mapaDatas[data][categoria] !== undefined) {
+            mapaDatas[data][categoria]++;
+        }
+    });
+
+    const labels = Object.keys(mapaDatas)
+        .sort((a, b) => new Date(a) - new Date(b));
+
+    const dadosPorCategoria = {
+        Autenticidade: [],
+        Competência: [],
+        Humanização: []
+    };
+
+    labels.forEach(data => {
+        dadosPorCategoria.Autenticidade.push(mapaDatas[data].Autenticidade);
+        dadosPorCategoria.Competência.push(mapaDatas[data].Competência);
+        dadosPorCategoria.Humanização.push(mapaDatas[data].Humanização);
+    });
+
+    return { labels, dadosPorCategoria };
+}
+
+
+function criarGraficoPostagensPorDia(dadosCSV) {
+    const ctx = document.getElementById('graficoPostagensPorDia');
+    if (!ctx) return;
+
+    if (graficoPostagensPorDiaChart) {
+        graficoPostagensPorDiaChart.destroy();
+    }
+
+    const { labels, dadosPorCategoria } =
+        prepararPostagensPorDia(dadosCSV);
+
+    graficoPostagensPorDiaChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Autenticidade',
+                    data: dadosPorCategoria.Autenticidade,
+                    backgroundColor: 'rgba(37, 99, 235, 0.85)'
+                },
+                {
+                    label: 'Competência',
+                    data: dadosPorCategoria.Competência,
+                    backgroundColor: 'rgba(75, 85, 99, 0.85)'
+                },
+                {
+                    label: 'Humanização',
+                    data: dadosPorCategoria.Humanização,
+                    backgroundColor: 'rgba(239, 68, 68, 0.85)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        footer: items => {
+                            const total = items.reduce(
+                                (sum, i) => sum + i.raw,
+                                0
+                            );
+                            return `Total no dia: ${total}`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: { color: '#374151' }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        color: 'rgba(209, 213, 219, 0.3)'
+                    }
+                }
+            }
+        }
+    });
+}
+
 
 
 </script>
