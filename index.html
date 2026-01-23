@@ -2,18 +2,17 @@
 <html lang="pt-br">  <head>
     <meta charset="UTF-8">  <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="icone.png" type="image/png">
-    <title>Dashboard do Lula</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Dashboard do Noboa</title> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Adapter para usar escala de tempo com Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@2.1.0/src/wordcloud2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <style>
-        /* --- Variáveis de Design (Estilo profissional) --- */
+        
         :root {
             --sidebar-width-desktop: 260px;
             --header-height-mobile: 60px;
@@ -33,7 +32,7 @@
             --card-radius: 0.75rem; /* 12px */
         }
 
-        /* --- Reset e Estilos Globais --- */
+        
         * {
             box-sizing: border-box;
             margin: 0;
@@ -183,22 +182,19 @@
         }
         
         .card-body p { margin-bottom: 1rem; }
-
-        
-.chart-container, .chart-container-radar {
-    position: relative;
-    height: 340px;
-    width: 100%;
-    padding: 0.5rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* --- FIM: Correção do Tamanho do Gráfico --- */
         
         
-        /* --- Estilo do Accordion (details) --- */
+        .chart-container, .chart-container-radar {
+            position: relative;
+            height: 340px;
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+     
+               
         .accordion-item {
             border: 1px solid var(--border-color);
             border-radius: 0.5rem; 
@@ -277,7 +273,6 @@
         .footer-links a:hover { color: var(--color-primary); }
 
         
-        /* --- INÍCIO: NOVOS ESTILOS DO LIGHTBOX (Modal de Imagem) --- */
         .lightbox-overlay {
             position: fixed;
             top: 0;
@@ -336,27 +331,18 @@
         .tab-content > img { /* Pega imagens no card e também as de fora */
             cursor: zoom-in;
             transition: transform 0.2s ease;
-
-            /* Centralização */
-    display: block;
-    margin: 0 auto;
-    max-width: 100%;
-    height: auto;
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
         }
         
-        /* Não aplicar zoom em GIFs (ex: radar) */
         .card-body img[src$=".gif"],
         .tab-content > img[src$=".gif"] {
             cursor: default;
         }
-        /* --- FIM: NOVOS ESTILOS DO LIGHTBOX --- */
-
-
-     /* ... (todo o seu CSS anterior) ... */
-
-    /* --- INÍCIO: NOVOS ESTILOS DO CARD DE PERFIL --- */
-    
-    .profile-banner {
+        
+        .profile-banner {
         /* Define uma altura fixa para o banner */
         height: 220px; 
         overflow: hidden;
@@ -1136,7 +1122,7 @@ canvas {
         
         <aside class="sidebar">
             <div class="sidebar-header">
-                Daniel Noboa
+                Daniel Noboa 🥇
             </div>
             
             <nav class="sidebar-nav">
@@ -1169,8 +1155,8 @@ canvas {
             
             <header class="main-header">
                 <div class="main-header-text">
-                    <h2>2023</h2>
-                    <p>Comportamento político nas mídias sociais</p>
+                    <h2>Eleição presidencial equatoriana de 2023</h2>
+                    <p>Monitoramento e análise do comportamento político nas mídias sociais</p>
                 </div>
                 
                 <button class="share-button" id="mobileShareBtn" aria-label="Compartilhar">
@@ -1193,10 +1179,9 @@ canvas {
                             
                             <img src="perfil2.jpg" alt="Foto de Perfil do Candidato" class="profile-pic">
                             
-                            <h3 class="profile-name">Daniel Noboa Azin</h3>
-                            
+                            <h3 class="profile-name">Daniel Noboa Azin</h3>                            
                             <p>POR UN NUEVO ECUADOR 🟪🟨</p>
-                            <p>Fundador de ADN | Presidente Constitucional de la República del Ecuador</p>
+                            <p>Presidente Constitucional de la República del Ecuador</p>
                              
                         </div>
 
@@ -1204,9 +1189,21 @@ canvas {
                     </div>
 
                     <div class="card full-width">
-                        <div class="card-header"> <h3>As Marcas Humanas na Política</h3> </div>
+                        <div class="card-header"> <h3>Liderança e Marca Política</h3> </div>
                         <div class="card-body">
-                            <p>A marca humana na política é simultaneamente uma pessoa e o eixo central da marca política, capaz de ser identificada e diferenciada entre as demais, recebe esforços contínuos de comunicação para construir a sua persona em consonância com a sua audiência <a href="https://www.tandfonline.com/doi/abs/10.1080/15377857.2025.2491333" target="_blank" rel="noopener noreferrer">(Reis Soares et al., 2025)</a>. De acordo com o estudo, as marcas humanas na política são constituídas de conceitos fundamentais inatos aos seres humanos, mas não podem ser marcas autônomas devido a dependência do partido e das pautas políticas para que possam assegurar e evidenciar sua autenticidade e competência.</p>
+                            <p>Marcas Políticas são representações que seguem padrões identificáveis, permitindo que atores e projetos políticos sejam distinguidos. Tradicionalmente, o conceito é entendido como uma tríade composta pelo partido, pelas políticas ou ideologias que os orientam e pela líder político (Nielsen, 2017).</p>
+
+<p>Pesquisas recentes, destacam o líder político como o elemento central da marca política. Pela sua capacidade de estabelecer uma comunicação mais direta e responsiva às demandas dos eleitores. Diante da ampliação do papel da liderança na Marca Política, passaram a ser compreendidas como Marcas Humanas Políticas (Speed et al., 2015; Ceccobelli e Di Gregorio, 2022; Reis Soares et al., 2025).</p>
+
+<p>Trata-se de uma pessoa que é simultaneamente o eixo central da marca política. Portanto, figuras identificáveis e diferenciáveis, que recebem esforços contínuos de comunicação voltados à construção de uma persona alinhada as expectativas e percepções de sua audiência.</p> 
+
+<p>São constituídas de conceitos fundamentais inatos aos seres humanos, como:</p>
+
+<p>(1) Humanização, relacionada à capacidade de ser percebido como próximo, acessível e semelhante aos eleitores, especialmente em termos de estilo de vida.</p>
+<p>(3) Autenticidade, associada à capacidade de inspirar confiança e de ser percebido como alguém em quem se pode confiar.</p>
+<p>(2) Competência, reconhecida quando o líder é visto como detentor de habilidades que o competem, posicionando-se como melhor do que os eleitores em determinados domínios.</p>
+
+<p>Mas não podem ser marcas autônomas devido a dependência do partido e das pautas políticas para que possam assegurar e evidenciar sua autenticidade e competência.</p>
                         </div>
                     </div>
 
@@ -1439,7 +1436,11 @@ canvas {
             <footer class="footer">
                 <div class="footer-info">
     <div class="footer-profile">
+        <a href="https://vitorreissoares.github.io/profile/"
+           target="_blank"
+           rel="noopener noreferrer">
     <img src="vitor.jpg" alt="Foto de Vitor Reis Soares" class="footer-avatar">
+    </a>
 
     <div class="footer-text">
         <p>
@@ -2676,7 +2677,7 @@ function gerarNuvem(textos) {
     gridSize: Math.round(10 * window.devicePixelRatio),
     weightFactor: (size, word) => {
   if (/\p{Emoji}/u.test(word)) return Math.sqrt(size) * 26;
-  return Math.sqrt(size) * 18;
+  return Math.sqrt(size) * 12;
 },
     fontFamily: "Georgia, serif",
     rotateRatio: 0.03,
