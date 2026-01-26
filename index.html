@@ -783,17 +783,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* === Scroll horizontal apenas no mobile === */
-@media (max-width: 768px) {
-  .tabela-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    width: 100%;
-  }
 
-  .tabela-scroll table {
-    min-width: 700px; /* força rolagem */
-  }
 
   /* Indicador visual sutil */
   .tabela-scroll::after {
@@ -1129,6 +1119,43 @@ canvas {
 }
 
 
+@media (max-width: 768px) {
+
+  /* Remove cabeçalho da tabela */
+  .tabela-dados thead {
+    display: none;
+  }
+
+  /* Cada linha vira um card */
+  .tabela-dados tr {
+    display: block;
+    margin-bottom: 14px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  /* Cada célula vira linha vertical */
+  .tabela-dados td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    border: none;
+    font-size: 0.85rem;
+  }
+
+  /* Rótulo antes do valor (simula o th) */
+  .tabela-dados td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+}
+
 
 
 
@@ -1178,7 +1205,7 @@ canvas {
             <header class="main-header">
                 <div class="main-header-text">
                     <h2>Eleição presidencial equatoriana de 2023</h2>
-                    <p>Análise do comportamento político nas mídias sociais</p>
+                    <p>Análise de comportamento político nas mídias sociais</p>
                 </div>
                 
                 <button class="share-button" id="mobileShareBtn" aria-label="Compartilhar">
@@ -1254,7 +1281,7 @@ canvas {
         <div class="card-grid">
             <div class="card full-width destaque-grafico">
                 
-                <div class="card-header"><h3>Classificação</h3></div>
+                <div class="card-header"><h3>Distribuição de categorias</h3></div>
                 <div class="card-body">
                     
                     <div class="chart-container">
@@ -1264,8 +1291,8 @@ canvas {
             </div>
 
             <div class="card full-width destaque-grafico">
-    <h3 class="card-title"></h3>
-    <div class="chart-container">
+    <div class="card-header"><h3>Análise de Conteúdo</h3></div>
+                <div class="card-body">
         <canvas id="graficoPostagensPorDia"></canvas>
     </div>
 </div>
@@ -1287,7 +1314,7 @@ canvas {
 
                                         <div class="card full-width">
     <div class="card-header"><h3>Mais comentadas</h3></div>
-    <div class="card-body" id="container-comentarios-csv">
+    <div class="card-body lista-mobile" id="container-comentarios-csv">
         <p>Carregando dados da planilha...</p>
     </div>
 
@@ -1306,7 +1333,7 @@ canvas {
 
         <div class="card full-width">
     <div class="card-header"><h3>Mais curtidas</h3></div>
-    <div class="card-body" id="container-curtidas-csv">
+    <div class="card-body lista-mobile" id="container-curtidas-csv">
         <p>Carregando dados da planilha...</p>
     </div>
 </div>
@@ -1363,11 +1390,10 @@ canvas {
     </div>
 </div>
 
-<div class="card full-width">
-  <div class="card-header">
-    
-  </div>
-  <div class="card-body" id="container-sentimentos-csv">
+<div class="card full-width destaque-grafico">
+<div class="card-header"><h3>Análise de sentimentos</h3></div>
+<div class="card">
+  <div class="card-body lista-mobile" id="container-sentimentos-csv">
     <p>Carregando dados da planilha...</p>
   </div>
 </div>
@@ -2936,6 +2962,5 @@ function criarGraficoPostagensPorDia(dadosCSV) {
 
 </body>
 </html>
-
 
 
