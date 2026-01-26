@@ -1156,6 +1156,21 @@ canvas {
   }
 }
 
+/* =========================================================
+   AJUSTE DE RECUO DAS LINHAS EXPANDIDAS (VER MAIS)
+   ========================================================= */
+
+/* Garante o mesmo espaçamento das linhas iniciais */
+.tabela-dados tr td {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Linhas reveladas pelo "Ver mais" */
+.tabela-dados tr.linha-oculta td {
+  padding-left: 16px;
+  padding-right: 16px;
+}
 
 
 
@@ -2964,5 +2979,6 @@ function criarGraficoPostagensPorDia(dadosCSV) {
 
 </body>
 </html>
+
 
 
